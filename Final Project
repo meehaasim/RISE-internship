@@ -1,0 +1,648 @@
+# K-means clustering code
+
+import sklearn
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns;
+import numpy as np
+
+from sklearn.datasets import make_blobs
+
+X, y_true = make_blobs(n_samples=300, centers=4,
+                       cluster_std=0.60, random_state=0)
+plt.scatter(X[:, 0], X[:, 1], s=50);
+
+from sklearn.cluster import KMeans
+kmeans = KMeans(n_clusters=4, n_init = 10)
+kmeans.fit(X)
+y_kmeans = kmeans.predict(X)
+
+# to colour labels 
+
+plt.scatter(X[:, 0], X[:, 1], c=y_kmeans, s=50, cmap='viridis')
+
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5);
+
+
+# To generate data set with 6 clusters and greater standard deviation 
+import sklearn
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns;
+import numpy as np
+
+from sklearn.datasets import make_blobs
+
+X, y_true = make_blobs(n_samples=300, centers=6,
+                       cluster_std=1.0, random_state=0)
+
+cluster_labels = {
+    0: 'Cluster 1',
+    1: 'Cluster 2',
+    2: 'Cluster 3',
+    3: 'Cluster 4',
+    4: 'Cluster 5',
+    5: 'Cluster 6'
+}
+
+for cluster_index in range(6):
+    cluster_points = X[y_true == cluster_index]
+    plt.scatter(cluster_points[:, 0], cluster_points[:, 1], s=50, label=cluster_labels[cluster_index])
+
+plt.legend() 
+
+for cluster_index in range(6):   #  Plotting cluster centers 
+    cluster_points = X[y_true == cluster_index]
+    plt.scatter(cluster_points[:, 0], cluster_points[:, 1], s=50, label=cluster_labels[cluster_index])
+
+plt.legend()
+kmeans = KMeans(n_clusters=6, n_init = 10)
+kmeans.fit(X)
+y_kmeans = kmeans.predict(X)
+centers = kmeans.cluster_centers_
+plt.scatter(centers[:, 0], centers[:, 1], c='black', s=200, alpha=0.5);
+
+
+
+# Expectation maximization without using scikit library 
+from sklearn.metrics import pairwise_distances_argmin
+
+X, y_true = make_blobs(n_samples=300, centers=6,
+                       cluster_std=1.0, random_state=0)
+
+def find_clusters(X, n_clusters, rseed=2):
+    # 1. Randomly choose clusters
+    rng = np.random.RandomState(rseed)
+    i = rng.permutation(X.shape[0])[:n_clusters]
+    centers = X[i]
+
+
+    while True:
+
+        pass
+
+        # Step 1: Assign labels based on closest center
+
+        labels = pairwise_distances_argmin(X,centers)
+
+        # Step 2: Find new centers from means of points
+
+        new_centers = np.array([X[labels == i].mean(axis=0) for i in range(n_clusters)])
+        # Step 3: Check for convergence
+
+        if np.all(centers == new_centers):
+            break
+
+        centers = new_centers
+
+    return centers, labels
+    #return centers, labels
+
+centers, labels = find_clusters(X, 4)
+plt.scatter(X[:, 0], X[:, 1], c=labels,
+            s=50, cmap='viridis');
+
+labels = KMeans(6, random_state=0).fit_predict(X)
+plt.scatter(X[:, 0], X[:, 1], c=labels,
+            s=50, cmap='viridis');
+
+
+
+# Using CLustering for color compression 
+
+from sklearn.datasets import load_sample_image
+china = load_sample_image("china.jpg")
+ax = plt.axes(xticks=[], yticks=[])
+ax.imshow(china);
+
+def plot_pixels(data, title, colors=None, N=1000):
+    if colors is None:
+        colors = data
+
+    # choose a random subset
+    rng = np.random.RandomState(0)
+    i = rng.permutation(data.shape[0])[:N]
+    colors = colors[i]
+    R, G, B = data[i].T
+
+    fig, ax = plt.subplots(1, 2, figsize=(16, 6))
+    ax[0].scatter(R, G, color=colors, marker='.')
+    ax[0].set(xlabel='Red', ylabel='Green', xlim=(0, 1), ylim=(0, 1))
+
+    ax[1].scatter(R, B, color=colors, marker='.')
+    ax[1].set(xlabel='Red', ylabel='Blue', xlim=(0, 1), ylim=(0, 1))
+
+    fig.suptitle(title, size=20);
+
+import warnings; warnings.simplefilter('ignore')
+
+from sklearn.cluster import MiniBatchKMeans
+kmeans = MiniBatchKMeans(n_clusters=64)
+kmeans.fit(data)
+new_colors = kmeans.cluster_centers_[kmeans.predict(data)]
+
+plot_pixels(data, colors=new_colors,
+            title= "Reduced color space: 64 colors")
+
+china_recolored = new_colors.reshape(china.shape)
+
+fig, ax = plt.subplots(1, 2, figsize=(16, 6),
+                       subplot_kw=dict(xticks=[], yticks=[]))
+fig.subplots_adjust(wspace=0.05)
+ax[0].imshow(china)
+ax[0].set_title('Original Image', size=16)
+ax[1].imshow(china_recolored)
+ax[1].set_title('64-color Image', size=16);
+
+#128 colors
+
+import warnings; warnings.simplefilter('ignore')  # Ignore this line
+
+from sklearn.cluster import MiniBatchKMeans
+n_colors = 128
+kmeans = MiniBatchKMeans(n_clusters=n_colors)
+kmeans.fit(data)
+new_colors = kmeans.cluster_centers_[kmeans.predict(data)]
+
+plot_pixels(data, colors=new_colors,
+            title=f"Reduced color space: {n_colors} colors")
+
+china_recolored = new_colors.reshape(china.shape)
+
+fig, ax = plt.subplots(1, 2, figsize=(16, 6),
+                       subplot_kw=dict(xticks=[], yticks=[]))
+fig.subplots_adjust(wspace=0.05)
+ax[0].imshow(china)
+ax[0].set_title('Original Image', size=16)
+ax[1].imshow(china_recolored)
+ax[1].set_title('128-color Image', size=16);
+
+# Classification 
+
+# Begin by importing the following libraries
+import sklearn
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns;
+import numpy as np
+
+
+# K nearest neighbours 
+
+daf = pd.read_csv("forestfires.csv")
+print(daf[500:517])
+daf_x = daf.DMC[:500]
+daf_y = daf.DC[:500]
+test_x = daf.DMC[500:517]
+test_y = daf.DC[500:517]
+plt.scatter(daf_x, daf_y)
+plt.scatter(test_x, test_y, color = 'red')
+plt.xlabel('DMC')
+plt.ylabel('DC')
+plt.show()
+
+#X values of training data = [8,7,4,2,4,1,1,2,1,5,6,8,4,2,7,1,6]
+
+k = 3
+row_number_daf_1 = 500
+#col_number_daf_1 = 3
+row_number_daf_2 = 17
+#col_number_daf_2 = 2
+for k in range(3,20):
+  for row in range(500,517):
+    dmc_test = daf.iloc[row, 5]
+    dc_test = daf.iloc[row, 6]
+    distances = []
+    for index in range(500):
+      x_cord = daf.iloc[index, 5]
+      y_cord = daf.iloc[index, 6]
+      class_value = daf.iloc[index, 0] # X value
+      distance = ((x_cord-dmc_test)**2 + (y_cord-dc_test)**2)**0.5
+      distances.append([distance, class_value])
+      distances.sort()
+      k_closest = []
+    for ks in range(k):
+      k_closest.append(distances[ks])
+
+    x_values = [0]*10
+
+    for ks in range(k):
+      class_value = k_closest[ks][1]
+      x_values[class_value] += 1
+    label_assigned_value = max(x_values)
+    label_assigned = x_values.index(label_assigned_value)
+
+  #   print(f" Class:{label_assigned} given to point [{dmc_test} , {dc_test}], row number = {row}")
+  # print("K value: ", k)
+  # print('***********')
+
+
+from sklearn.datasets import make_moons
+
+X, y = make_moons(n_samples=100, noise=0.15, random_state=42)
+
+# Create a DataFrame
+df_1 = pd.DataFrame(X, columns=['Feature1', 'Feature2'])
+df_1['Class'] = y
+
+# Visualize the dataset
+plt.scatter(X[y == 0][:, 0], X[y == 0][:, 1], color='red', label='Class 0')
+plt.scatter(X[y == 1][:, 0], X[y == 1][:, 1], color='blue', label='Class 1')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.title('Crescent-shaped k-NN Dataset')
+plt.show()
+
+import pandas as pd
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from sklearn.preprocessing import StandardScaler
+
+def point_generator(n_points=5, noise=0.2):
+    """
+    Generator that produces `n_points` random points for classification
+    using crescent (moons) shapes.
+
+    Parameters:
+    - n_points: Number of points to generate (default is 5).
+    - noise: Standard deviation of Gaussian noise added to the data (default is 0.2).
+    """
+    from sklearn.datasets import make_moons
+
+    while True:
+        X, _ = make_moons(n_samples=n_points, noise=noise)
+        for i in range(n_points):
+            yield X[i]
+
+gen = point_generator()
+
+# Generate and collect 5 points
+points = [next(gen) for _ in range(5)]
+
+# Convert to DataFrame for visualization and further use
+df_2 = pd.DataFrame(points, columns=['Feature1', 'Feature2'])
+
+print("Generated Points:")
+print(df_2)
+
+# Visualize the generated points
+plt.scatter(df_2['Feature1'], df_2['Feature2'], color='green')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.title('Generated Points for Classification')
+plt.show()
+
+k = 3
+row_number_df_1 = 100
+col_number_df_1 = 3
+row_number_df_2 = 5
+col_number_df_2 = 2
+for row in range(row_number_df_2):
+  feature1_test = df_2.iloc[row, 0]
+  feature2_test = df_2.iloc[row, 1]
+  distances = []
+  for index in range(row_number_df_1):
+    x_cord = df_1.iloc[index, 0]
+    y_cord = df_1.iloc[index, 1]
+    class_value = df_1.iloc[index, 2]
+    distance = ((x_cord-feature1_test)**2 + (y_cord-feature2_test)**2)**0.5
+    distances.append([distance, class_value])
+    distances.sort()
+    k_closest = []
+  for ks in range(k):
+    k_closest.append(distances[ks])
+
+  zero_count = 0
+  one_count = 0
+  for ks in range(k):
+    class_value = k_closest[ks][1]
+    if class_value == 0:
+      zero_count += 1
+    else:
+      one_count += 1
+  if one_count > zero_count:
+    label_assigned = 1
+  else:
+    label_assigned = 0
+  print(f" Class:{label_assigned} given to point [{round(feature1_test, 3)},{round(feature2_test, 3)}]")
+
+X, y = make_moons(n_samples=100, noise=0.15, random_state=42)
+
+# Create a DataFrame
+df_1 = pd.DataFrame(X, columns=['Feature1', 'Feature2'])
+df_1['Class'] = y
+
+#trying
+tempx = df_2.Feature1
+tempy = df_2.Feature2
+
+# Visualize the dataset
+plt.scatter(X[y == 0][:, 0], X[y == 0][:, 1], color='red', label='Class 0')
+plt.scatter(X[y == 1][:, 0], X[y == 1][:, 1], color='blue', label='Class 1')
+plt.scatter(tempx, tempy, color = 'green', label = 'test data')
+plt.xlabel('Feature 1')
+plt.ylabel('Feature 2')
+plt.legend()
+plt.title('Crescent-shaped k-NN Dataset with test values')
+plt.show()
+
+# For 3 dimentional 
+
+from sklearn.datasets import make_blobs
+
+# Generate the dataset with three spheres
+X, y = make_blobs(n_samples=[100, 150, 120], centers=[[0, 0, 0], [3, 3, 3], [-3, -3, -3]], cluster_std=1, random_state=42)
+
+# Generate additional random points outside the spheres for class 4
+np.random.seed(42)
+num_none_points = 40
+X_none = np.random.uniform(-6, 6, size=(num_none_points, 3))
+y_none = np.full(num_none_points, 3)  # Assigning class 4 to these points
+
+# Combine the sphere points and "None" points
+X_combined = np.concatenate((X, X_none), axis=0)
+y_combined = np.concatenate((y, y_none), axis=0)
+
+# Create a DataFrame
+df = pd.DataFrame(X_combined, columns=['X', 'Y', 'Z'])
+df['Class'] = y_combined
+
+# Visualize the dataset in 3D
+fig = plt.figure(figsize=(8, 6))
+ax = fig.add_subplot(111, projection='3d')
+
+# Scatter plot for each class
+for class_label in range(4):
+    ax.scatter(df[df['Class'] == class_label]['X'],
+               df[df['Class'] == class_label]['Y'],
+               df[df['Class'] == class_label]['Z'],
+               label=f'Class {class_label}')
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+ax.set_title('Generated Dataset with Three Spheres and Class 4 (None) in 3D')
+ax.legend()
+
+plt.show()
+
+
+
+# Neutral networks: 
+
+from sklearn.model_selection import train_test_split
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+
+# Generate the dataset with three spheres and class 4 (None)
+X, y = make_blobs(n_samples=[100, 150, 120], centers=[[0, 0, 0], [3, 3, 3], [-3, -3, -3]], cluster_std=0.5, random_state=42)
+
+# Generate additional random points outside the spheres for class 4
+np.random.seed(42)
+num_none_points = 30
+X_none = np.random.uniform(-6, 6, size=(num_none_points, 3))
+y_none = np.full(num_none_points, 3)  # Assigning class 4 to these points
+
+# Combine the sphere points and "None" points
+X_combined = np.concatenate((X, X_none), axis=0)
+y_combined = np.concatenate((y, y_none), axis=0)
+
+# Split data into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(X_combined, y_combined, test_size=0.2, random_state=42)
+
+# Build and train network 
+
+model = Sequential([
+    Dense(16, input_shape=(3,), activation='relu'),  # Input layer with 16 neurons and ReLU activation
+    Dense(8, activation='relu'),                     # Hidden layer with 8 neurons and ReLU activation
+    Dense(4, activation='softmax')                   # Output layer with 4 neurons (one for each class) and softmax activation
+])
+
+# Compile the model
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',  # Use sparse categorical crossentropy since y_train is not one-hot encoded
+              metrics=['accuracy'])
+
+# Print a summary of the model
+model.summary()
+
+# Train the model
+history = model.fit(X_train, y_train, epochs=30, batch_size=32, validation_data=(X_test, y_test))
+
+# Evaluate the model
+loss, accuracy = model.evaluate(X_test, y_test)
+print(f"Test Loss: {loss:.4f}, Test Accuracy: {accuracy:.4f}")
+
+def generate_random_points(num_points, xlim=(-7, 7), ylim=(-7, 7), zlim=(-7, 7)):
+    x = np.random.uniform(xlim[0], xlim[1], num_points)
+    y = np.random.uniform(ylim[0], ylim[1], num_points)
+    z = np.random.uniform(zlim[0], zlim[1], num_points)
+    return np.vstack((x, y, z)).T
+
+# Generate random sample points for classification
+num_sample_points = 500
+random_points = generate_random_points(num_sample_points)
+
+# Predict classes for the random sample points
+predictions = model.predict(random_points)
+predicted_labels = np.argmax(predictions, axis=1)
+
+# Create a DataFrame for visualization
+df_pred = pd.DataFrame(random_points, columns=['X', 'Y', 'Z'])
+df_pred['Predicted Class'] = predicted_labels
+
+# Visualize the predicted classes in 3D
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+fig = plt.figure(figsize=(10, 8))
+ax = fig.add_subplot(111, projection='3d')
+
+# Scatter plot for each predicted class
+for class_label in range(4):
+    ax.scatter(df_pred[df_pred['Predicted Class'] == class_label]['X'],
+               df_pred[df_pred['Predicted Class'] == class_label]['Y'],
+               df_pred[df_pred['Predicted Class'] == class_label]['Z'],
+               label=f'Class {class_label}')
+
+ax.set_xlabel('X')
+ax.set_ylabel('Y')
+ax.set_zlabel('Z')
+ax.set_title('Neural Network Classification of Random Sample Points in 3D')
+ax.legend()
+
+plt.show()
+
+
+# Applying this to 3 types of iris flowers dataset 
+
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+import matplotlib.pyplot as plt
+
+# Load the Iris dataset
+iris = load_iris()
+
+# Split the dataset into training and testing sets
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.2, random_state=42)
+
+# Further split the training set into training and validation sets
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+
+# Show sample data points from the dataset
+plt.figure(figsize=(12, 4))
+
+# Plot for feature 0 vs feature 1
+plt.subplot(1, 3, 1)
+plt.scatter(X_train[:, 0], X_train[:, 1], c=y_train, cmap='viridis', edgecolor='k')
+plt.xlabel('Sepal length (cm)')
+plt.ylabel('Sepal width (cm)')
+plt.title('Sepal Width vs Length')
+
+# Plot for feature 2 vs feature 3
+plt.subplot(1, 3, 2)
+plt.scatter(X_train[:, 2], X_train[:, 3], c=y_train, cmap='viridis', edgecolor='k')
+plt.xlabel('Petal length (cm)')
+plt.ylabel('Petal width (cm)')
+plt.title('Petal Width vs Length')
+
+# Show the species distribution
+plt.subplot(1, 3, 3)
+plt.scatter(iris.data[:, 2], iris.data[:, 3], c=iris.target, cmap='viridis', edgecolor='k')
+plt.xlabel('Petal length (cm)')
+plt.ylabel('Petal width (cm)')
+plt.title('Species Distribution')
+
+plt.tight_layout()
+plt.show()
+
+# KNN classifier 
+
+import numpy as np
+from collections import Counter
+from sklearn.datasets import load_iris
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Euclidean distance
+def euclidean_distance(point1, point2):
+    return np.sqrt(np.sum((point1 - point2) ** 2))
+
+# Function to get k nearest neighbors
+def get_neighbors(X_train, y_train, test_instance, k):
+    distances = []
+    for i in range(len(X_train)):
+        dist = euclidean_distance(X_train[i], test_instance)
+        distances.append((y_train[i], dist))
+    distances.sort(key=lambda x: x[1])
+    neighbors = [distances[i][0] for i in range(k)]
+    return neighbors
+
+# Predict function
+def predict(X_train, y_train, X_test, k):
+    y_pred = []
+    for test_instance in X_test:
+        neighbors = get_neighbors(X_train, y_train, test_instance, k)
+        most_common = Counter(neighbors).most_common(1)[0][0]
+        y_pred.append(most_common)
+    return y_pred
+
+# Load Iris dataset
+iris = load_iris()
+X_train, X_test, y_train, y_test = train_test_split(iris.data, iris.target, test_size=0.2, random_state=42)
+X_train, X_val, y_train, y_val = train_test_split(X_train, y_train, test_size=0.2, random_state=42)
+
+# Predict
+k = 5
+y_pred = predict(X_train, y_train, X_test, k)
+
+# Evaluate
+accuracy = accuracy_score(y_test, y_pred)
+print(f'Accuracy: {accuracy:.2f}')
+
+# classification report
+print('Classification Report:')
+print(classification_report(y_test, y_pred, target_names=iris.target_names))
+
+# Confusion matrix
+confusion = confusion_matrix(y_test, y_pred)
+
+# Plot
+plt.figure(figsize=(8, 6))
+sns.heatmap(confusion, annot=True, cmap='viridis', fmt='d', xticklabels=iris.target_names, yticklabels=iris.target_names)
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix KNN')
+plt.show()
+
+# Neutral netwrok 
+
+import numpy as np
+import tensorflow as tf
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report, confusion_matrix
+from sklearn.preprocessing import StandardScaler
+from sklearn.datasets import load_iris
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load dataset
+from sklearn.datasets import load_iris
+iris = load_iris()
+X = iris.data
+y = iris.target
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+# Standardize features
+scaler = StandardScaler()
+X_train = scaler.fit_transform(X_train)
+X_test = scaler.transform(X_test)
+
+# Define model
+model = tf.keras.models.Sequential([
+    tf.keras.layers.Dense(10, input_shape=(4,), activation='relu'),
+    tf.keras.layers.Dense(10, activation='relu'),
+    tf.keras.layers.Dense(3, activation='softmax')
+])
+
+# Compile
+model.compile(optimizer='adam',
+              loss='sparse_categorical_crossentropy',
+              metrics=['accuracy'])
+# Train
+history = model.fit(X_train, y_train, epochs=50, batch_size=16, validation_split=0.2)
+
+# Evaluate model
+test_loss, test_accuracy = model.evaluate(X_test, y_test)
+print(f'Test Loss: {test_loss:.4f}')
+print(f'Test Accuracy: {test_accuracy:.4f}')
+
+# Predict on the test data
+y_pred_prob = model.predict(X_test)
+y_pred = np.argmax(y_pred_prob, axis=1)
+
+model.summary()
+
+# Classification report
+report = classification_report(y_test, y_pred, target_names=iris.target_names)
+print(report)
+
+# Confusion matrix
+confusion = confusion_matrix(y_test, y_pred)
+
+# Plot
+plt.figure(figsize=(8, 6))
+sns.heatmap(confusion, annot=True, cmap='viridis', fmt='d', xticklabels=iris.target_names, yticklabels=iris.target_names)
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix Net Neural Classifier')
+plt.show()
